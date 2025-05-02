@@ -1,0 +1,874 @@
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --accent-color: #4895ef;
+  --success-color: #4cc9f0;
+  --danger-color: #f72585;
+  --warning-color: #f8961e;
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  --gray-color: #6c757d;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--dark-color);
+  background-color: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-header {
+  background-color: white;
+  padding: 1rem 2rem;
+  box-shadow: var(--box-shadow);
+  width: 100%;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-header h1 {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.connection-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.connection-badge.connected {
+  background-color: rgba(76, 201, 240, 0.1);
+  color: var(--success-color);
+}
+
+.connection-badge.disconnected {
+  background-color: rgba(247, 37, 133, 0.1);
+  color: var(--danger-color);
+}
+
+.tabs-container {
+  background-color: white;
+  border-bottom: 1px solid #eee;
+  width: 100%;
+}
+
+.tabs {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tabs button {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--gray-color);
+  position: relative;
+  transition: var(--transition);
+}
+
+.tabs button:hover {
+  color: var(--primary-color);
+}
+
+.tabs button.active {
+  color: var(--primary-color);
+}
+
+.tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--primary-color);
+  border-radius: 3px 3px 0 0;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.error-message {
+  background-color: rgba(247, 37, 133, 0.1);
+  color: var(--danger-color);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--danger-color);
+}
+
+.channels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.channel-card {
+  border: 1px solid #eee;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  transition: var(--transition);
+}
+
+.channel-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.channel-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.toggle-btn.active {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.toggle-btn.inactive {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.toggle-btn:hover {
+  opacity: 0.9;
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 0.3rem;
+  border-radius: var(--border-radius);
+}
+
+.status-indicator.on {
+  background-color: rgba(76, 201, 240, 0.1);
+  color: var(--success-color);
+}
+
+.status-indicator.off {
+  background-color: rgba(108, 117, 125, 0.1);
+  color: var(--gray-color);
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--gray-color);
+  font-size: 0.9rem;
+  background-color: white;
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header, .tabs-container {
+    padding: 1rem;
+  }
+  
+  .app-main {
+    padding: 1rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .tabs {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  .tabs button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  
+  .channels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --accent-color: #4895ef;
+  --success-color: #4cc9f0;
+  --danger-color: #f72585;
+  --warning-color: #f8961e;
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  --gray-color: #6c757d;
+  --border-radius: 12px; /* Aumentei o border-radius para bordas mais arredondadas */
+  --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra mais suave */
+  --transition: all 0.3s ease;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size-base: 16px; /* A base para fonte para escalabilidade */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-family);
+  line-height: 1.6;
+  color: var(--dark-color);
+  background-color: var(--light-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--light-color);
+}
+
+.app-header {
+  background-color: var(--light-color);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--box-shadow);
+  width: 100%;
+  z-index: 10;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-header h1 {
+  color: var(--primary-color);
+  font-size: 2rem; /* Aumentei o tamanho do título */
+  font-weight: 600; /* Aumentei o peso da fonte */
+  margin: 0;
+}
+
+.connection-badge {
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  font-size: 1rem; /* Aumentei o tamanho da fonte para visibilidade */
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.connection-badge.connected {
+  background-color: rgba(76, 201, 240, 0.1);
+  color: var(--success-color);
+}
+
+.connection-badge.disconnected {
+  background-color: rgba(247, 37, 133, 0.1);
+  color: var(--danger-color);
+}
+
+.tabs-container {
+  background-color: var(--light-color);
+  border-bottom: 1px solid #ddd;
+  width: 100%;
+}
+
+.tabs {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tabs button {
+  padding: 1rem 2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--gray-color);
+  position: relative;
+  transition: var(--transition);
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.tabs button:hover {
+  color: var(--primary-color);
+}
+
+.tabs button.active {
+  color: var(--primary-color);
+}
+
+.tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--primary-color);
+  border-radius: 3px 3px 0 0;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2.5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  background-color: var(--light-color);
+}
+
+.card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.error-message {
+  background-color: rgba(247, 37, 133, 0.1);
+  color: var(--danger-color);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--danger-color);
+}
+
+.channels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Aumentei a largura mínima para 280px */
+  gap: 2rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.channel-card {
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  transition: var(--transition);
+  background-color: #fafafa;
+}
+
+.channel-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.channel-name {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--dark-color);
+}
+
+.toggle-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+  width: 100%;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.toggle-btn.active {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.toggle-btn.inactive {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.toggle-btn:hover {
+  opacity: 0.9;
+}
+
+.status-indicator {
+  font-size: 1rem;
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+}
+
+.status-indicator.on {
+  background-color: rgba(76, 201, 240, 0.1);
+  color: var(--success-color);
+}
+
+.status-indicator.off {
+  background-color: rgba(108, 117, 125, 0.1);
+  color: var(--gray-color);
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--gray-color);
+  font-size: 1rem;
+  background-color: var(--light-color);
+  width: 100%;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .app-header, .tabs-container {
+    padding: 1rem;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .tabs button {
+    padding: 1rem;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .channels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Melhorias no formulário de envio de notificação */
+.send-section {
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.send-section h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.error-message, .success-message {
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+}
+
+.error-message {
+  background-color: rgba(247, 37, 133, 0.1);
+  color: var(--danger-color);
+  border-left: 4px solid var(--danger-color);
+}
+
+.success-message {
+  background-color: rgba(76, 201, 240, 0.1);
+  color: var(--success-color);
+  border-left: 4px solid var(--success-color);
+}
+
+.notification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group label {
+  font-size: 1rem;
+  color: var(--dark-color);
+}
+
+.input-text {
+  padding: 1.2rem;
+  border-radius: var(--border-radius);
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  line-height: 1.5;
+  width: 100%;
+  transition: 0.3s ease;
+  height: 50px; /* Aumentei a altura do campo de texto */
+  resize: none; /* Não permitirá redimensionar o campo manualmente */
+}
+
+.input-text:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 5px rgba(67, 97, 238, 0.5);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Aumentei o espaçamento entre o checkbox e o texto */
+}
+
+.checkbox-label {
+  font-size: 1rem;
+  color: var(--dark-color);
+}
+
+.checkbox-input {
+  width: 20px; /* Aumentei o tamanho do checkbox */
+  height: 20px;
+}
+
+.send-btn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.send-btn:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.send-btn:active {
+  background-color: var(--primary-color);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .send-section {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .send-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .input-text {
+    height: 50px; /* Ajustei a altura do campo de texto em dispositivos menores */
+  }
+
+  .send-btn {
+    padding: 0.8rem;
+  }
+}
+/* Estilos para o Histórico de Notificações */
+.notification-history {
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.notification-history h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+.notification-history ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+  max-height: 550px; /* Define a altura máxima para a área da lista */
+  overflow-y: auto;  /* Permite a rolagem vertical se o conteúdo exceder a altura máxima */
+}
+
+.notification-item {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: 0.3s ease;
+}
+
+.notification-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.notification-item p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: var(--dark-color);
+}
+
+.notification-item strong {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Estilos para carregando e erro */
+.notification-history .loading {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.notification-history .error {
+  font-size: 1.2rem;
+  color: var(--danger-color);
+  font-weight: 500;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .notification-history {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .notification-history h2 {
+    font-size: 1.6rem;
+  }
+
+  .notification-item {
+    padding: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .notification-item p {
+    font-size: 0.95rem;
+  }
+
+  .notification-history ul {
+    max-height: 450px; /* Ajuste de altura para telas menores */
+  }
+}
+
+/* Estilos para o Cabeçalho */
+.app-header {
+  background-color: white;
+  padding: 1.5rem 2rem;
+  box-shadow: var(--box-shadow);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.connection-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s ease;
+}
+
+.connection-badge.connected {
+  background-color: rgba(76, 201, 240, 0.1);
+  color: var(--success-color);
+}
+
+.connection-badge.disconnected {
+  background-color: rgba(247, 37, 133, 0.1);
+  color: var(--danger-color);
+}
+
+/* Estilos para as Abas de Navegação */
+.tabs-container {
+  background-color: var(--light-color);
+  padding: 1rem 2rem;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.tabs button {
+  padding: 0.75rem 2rem;
+  background-color: transparent;
+  border: 2px solid transparent;
+  color: var(--gray-color);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tabs button:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.tabs button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
+}
+
+.tabs button:active {
+  background-color: var(--secondary-color);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1rem;
+  }
+
+  .tabs-container {
+    padding: 1rem;
+  }
+
+  .tabs button {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
