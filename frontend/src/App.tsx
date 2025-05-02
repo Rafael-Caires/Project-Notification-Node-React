@@ -5,6 +5,8 @@ import './App.css';
 import { NotificationForm } from '../src/components/NotificationForm';
 import { NotificationHistory } from './components/NotificationHistory';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface Channel {
   name: string;
   isActive: boolean;
@@ -20,7 +22,7 @@ function App() {
 
   const reloadNotifications = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/notifications/history');
+      const response = await axios.get(`${API_URL}/api/notifications/history`);
       const last20Notifications = response.data.slice(0, 20);
       setNotifications(last20Notifications);
     } catch (err) {
@@ -37,16 +39,18 @@ function App() {
     socketInstance.on('notificationStatus', (statusData) => {
       console.log("WebSocket Data:", statusData);
 
+      // Aqui atualiza a lista de notificações com base no status
       setNotifications((prevNotifications) => {
         const updatedNotifications = prevNotifications.map((notification) => {
           if (notification.subject === statusData.subject) {
+            console.log(`Status atualizado para: ${statusData.status}`);
             return { ...notification, status: statusData.status };
           }
           return notification;
         });
         return updatedNotifications;
       });
-      reloadNotifications(); 
+      reloadNotifications();  // Recarregar notificações após WebSocket
     });
     setSocket(socketInstance);
 
@@ -56,7 +60,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/channels')
+    axios.get(`${API_URL}/api/channels`)
       .then(response => setChannels(response.data))
       .catch(err => {
         setError('Falha ao buscar os canais');
@@ -65,7 +69,7 @@ function App() {
   }, []);
 
   const toggleChannel = (channelName: string) => {
-    axios.put(`http://localhost:3001/api/channels/${channelName}`)
+    axios.put(`${API_URL}/api/channels/${channelName}`)
       .then(() => {
         setChannels(prevChannels =>
           prevChannels.map(channel =>

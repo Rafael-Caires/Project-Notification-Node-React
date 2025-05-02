@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Notification } from '../core/types';
+import { useNotificationContext } from '../context/NotificationContext';
 
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { notifications, setNotifications } = useNotificationContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

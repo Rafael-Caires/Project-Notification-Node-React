@@ -1,4 +1,3 @@
-// src/context/NotificationContext.tsx
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 interface Channel {
@@ -7,52 +6,23 @@ interface Channel {
 }
 
 interface Notification {
+  subject: string;
   message: string;
   channels: string[];
+  status?: string;
   createdAt: string;
 }
 
-interface NotificationContextProps {
+interface NotificationContextType {
+  notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   channels: Channel[];
   setChannels: React.Dispatch<React.SetStateAction<Channel[]>>;
-  notificationHistory: Notification[];
-  setNotificationHistory: React.Dispatch<React.SetStateAction<Notification[]>>;
-  message: string;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-  selectedChannels: string[];
-  setSelectedChannels: React.Dispatch<React.SetStateAction<string[]>>;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
-  setSuccess: React.Dispatch<React.SetStateAction<string | null>>;
-  setIsSending: React.Dispatch<React.SetStateAction<boolean>>;
+  addNotification: (notification: Notification) => void;
+  updateNotificationStatus: (subject: string, status: string) => void;
 }
 
-const NotificationContext = createContext<NotificationContextProps | undefined>(undefined);
-
-interface NotificationProviderProps {
-  children: ReactNode;
-}
-
-export const NotificationProvider = ({ children }: NotificationProviderProps) => {
-  const [channels, setChannels] = useState<Channel[]>([]);
-  const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
-  const [message, setMessage] = useState<string>('');
-  const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
-
-  return (
-    <NotificationContext.Provider value={{
-      channels,
-      setChannels,
-      notificationHistory,
-      setNotificationHistory,
-      message,
-      setMessage,
-      selectedChannels,
-      setSelectedChannels,
-    }}>
-      {children}
-    </NotificationContext.Provider>
-  );
-};
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);
@@ -60,4 +30,27 @@ export const useNotificationContext = () => {
     throw new Error('useNotificationContext must be used within a NotificationProvider');
   }
   return context;
+};
+
+export const NotificationProvider = ({ children }: { children: ReactNode }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [channels, setChannels] = useState<Channel[]>([]);
+
+  const addNotification = (notification: Notification) => {
+    setNotifications((prev) => [notification, ...prev]);
+  };
+
+  const updateNotificationStatus = (subject: string, status: string) => {
+    setNotifications((prevNotifications) => {
+      return prevNotifications.map((notification) =>
+        notification.subject === subject ? { ...notification, status } : notification
+      );
+    });
+  };
+
+  return (
+    <NotificationContext.Provider value={{ notifications, setNotifications, channels, setChannels, addNotification, updateNotificationStatus }}>
+      {children}
+    </NotificationContext.Provider>
+  );
 };

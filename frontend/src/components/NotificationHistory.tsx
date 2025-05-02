@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import io, { Socket } from 'socket.io-client';  // Importando o Socket
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Notification {
   subject: string;
@@ -19,16 +20,15 @@ export const NotificationHistory = ({ notifications, setNotifications }: Notific
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const socket: Socket = io('http://localhost:3001'); 
+  const socket: Socket = io(import.meta.env.VITE_WS_URL); 
 
   useEffect(() => {
-    // Requisição para obter as últimas 20 notificações
     axios
-      .get('http://localhost:3001/api/notifications/history')
+      .get(`${API_URL}/api/notifications/history`)
       .then((response) => {
         const last20Notifications = response.data.slice(0, 20);
         setNotifications(last20Notifications);
-        console.log("Últimas 20 notificações:", last20Notifications);  // Logando as notificações
+        console.log("Últimas 20 notificações:", last20Notifications);  
         setLoading(false);
       })
       .catch((err) => {
@@ -37,7 +37,6 @@ export const NotificationHistory = ({ notifications, setNotifications }: Notific
         setLoading(false);
       });
 
-    // Ouvir o evento de WebSocket para atualizações de status
     socket.on('notificationStatus', (statusData: { subject: string; status: string; channel: string }) => {
       setNotifications((prevNotifications) => {
         const updatedNotifications = prevNotifications.map((notification) => {
@@ -51,14 +50,13 @@ export const NotificationHistory = ({ notifications, setNotifications }: Notific
     });
 
     return () => {
-      socket.off('notificationStatus'); 
+      socket.off('notificationStatus');  
     };
   }, [setNotifications]);
 
-  // Função para formatar a data
   const formatDate = (date: string) => {
     const newDate = new Date(date);
-    return newDate.toLocaleString(); // Formatação automática para o formato local
+    return newDate.toLocaleString(); 
   };
 
   if (loading) return <div>Carregando notificações...</div>;

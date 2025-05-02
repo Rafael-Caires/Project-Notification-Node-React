@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Channel {
   name: string;
@@ -16,7 +17,7 @@ export const NotificationForm = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/channels')
+    axios.get(`${API_URL}/api/channels`)
       .then((response) => {
         setChannels(response.data);
       })
@@ -58,16 +59,16 @@ export const NotificationForm = () => {
     setSuccess(null);
 
     try {
-      const response = await axios.post('http://localhost:3001/api/notifications', {
-        subject,  // Incluindo o assunto
+      await axios.post('http://localhost:3001/api/notifications', {
+        subject,  
         message,
         channels: selectedChannels,
       });
 
       setSuccess('Notificação enviada com sucesso!');
-      setSubject('');  // Limpar o campo de assunto
-      setMessage('');  // Limpar o campo de mensagem
-      setSelectedChannels([]);  // Limpar os canais selecionados
+      setSubject('');  
+      setMessage('');  
+      setSelectedChannels([]);  
     } catch (err) {
       setError('Erro ao enviar a notificação');
       console.error(err);
@@ -89,7 +90,7 @@ export const NotificationForm = () => {
             type="text"
             id="subject"
             value={subject}
-            onChange={handleSubjectChange}  // Atualiza o estado do assunto
+            onChange={handleSubjectChange}  
             placeholder="Digite o assunto"
             required
             className="input-text"
