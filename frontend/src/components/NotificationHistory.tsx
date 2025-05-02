@@ -1,34 +1,65 @@
-// src/components/NotificationHistory.tsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import io, { Socket } from 'socket.io-client';  // Importando o Socket
 
 interface Notification {
-  subject: string;  // Novo campo de assunto
+  subject: string;
   message: string;
   channels: string[];
   createdAt: string;
+  status?: string;
 }
 
-export const NotificationHistory = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+interface NotificationHistoryProps {
+  notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+}
+
+export const NotificationHistory = ({ notifications, setNotifications }: NotificationHistoryProps) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar o histórico de notificações ao montar o componente
+  const socket: Socket = io('http://localhost:3001'); 
+
   useEffect(() => {
+    // Requisição para obter as últimas 20 notificações
     axios
-      .get('http://localhost:3001/api/notifications/history')  // Substitua pela URL do seu backend
+      .get('http://localhost:3001/api/notifications/history')
       .then((response) => {
-        // Limitando a quantidade de notificações para as últimas 20
         const last20Notifications = response.data.slice(0, 20);
-        setNotifications(last20Notifications);  // Atualiza o estado com as últimas 20 notificações
+        setNotifications(last20Notifications);
+        console.log("Últimas 20 notificações:", last20Notifications);  // Logando as notificações
         setLoading(false);
       })
       .catch((err) => {
         setError('Falha ao carregar as notificações');
+        console.error('Erro ao carregar as notificações:', err);
         setLoading(false);
       });
-  }, []);
+
+    // Ouvir o evento de WebSocket para atualizações de status
+    socket.on('notificationStatus', (statusData: { subject: string; status: string; channel: string }) => {
+      setNotifications((prevNotifications) => {
+        const updatedNotifications = prevNotifications.map((notification) => {
+          if (notification.subject === statusData.subject) {
+            return { ...notification, status: statusData.status };
+          }
+          return notification;
+        });
+        return updatedNotifications;  
+      });
+    });
+
+    return () => {
+      socket.off('notificationStatus'); 
+    };
+  }, [setNotifications]);
+
+  // Função para formatar a data
+  const formatDate = (date: string) => {
+    const newDate = new Date(date);
+    return newDate.toLocaleString(); // Formatação automática para o formato local
+  };
 
   if (loading) return <div>Carregando notificações...</div>;
   if (error) return <div>{error}</div>;
@@ -39,10 +70,13 @@ export const NotificationHistory = () => {
       <ul>
         {notifications.map((notification, index) => (
           <li key={index} className="notification-item">
-            <p><strong>Assunto:</strong> {notification.subject}</p> {/* Exibindo o assunto */}
+            <p><strong>Assunto:</strong> {notification.subject}</p>
             <p><strong>Mensagem:</strong> {notification.message}</p>
             <p><strong>Canais:</strong> {notification.channels.join(', ')}</p>
-            <p><strong>Enviado em:</strong> {new Date(notification.createdAt).toLocaleString()}</p>
+            <p><strong>Enviado em:</strong> {formatDate(notification.createdAt)}</p>
+            {notification.status && (
+              <p><strong>Status:</strong> {notification.status}</p>
+            )}
           </li>
         ))}
       </ul>

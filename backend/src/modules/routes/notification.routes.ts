@@ -43,11 +43,4 @@ router.put('/channels/:name',
     toggleChannel
 );
 
-// Adicionando o log para verificar as rotas registradas
-router.stack.forEach((layer) => {
-    if (layer.route?.path) {  // Verificação para garantir que layer.route não seja undefined
-      console.log(`Route path: /api${layer.route.path}`);
-    }
-});
-
 export default router;

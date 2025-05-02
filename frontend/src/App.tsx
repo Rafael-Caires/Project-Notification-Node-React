@@ -16,15 +16,43 @@ function App() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'channels' | 'send' | 'history'>('send');
+  const [notifications, setNotifications] = useState<any[]>([]); 
+
+  const reloadNotifications = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/notifications/history');
+      const last20Notifications = response.data.slice(0, 20);
+      setNotifications(last20Notifications);
+    } catch (err) {
+      setError('Falha ao carregar as notificações');
+      console.error('Erro ao carregar as notificações:', err);
+    }
+  };
 
   useEffect(() => {
     const socketInstance = io(import.meta.env.VITE_WS_URL);
 
     socketInstance.on('connect', () => setIsConnected(true));
     socketInstance.on('disconnect', () => setIsConnected(false));
+    socketInstance.on('notificationStatus', (statusData) => {
+      console.log("WebSocket Data:", statusData);
+
+      setNotifications((prevNotifications) => {
+        const updatedNotifications = prevNotifications.map((notification) => {
+          if (notification.subject === statusData.subject) {
+            return { ...notification, status: statusData.status };
+          }
+          return notification;
+        });
+        return updatedNotifications;
+      });
+      reloadNotifications(); 
+    });
     setSocket(socketInstance);
 
-    return () => { socketInstance.disconnect(); };
+    return () => {
+      socketInstance.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -123,7 +151,7 @@ function App() {
 
         {activeTab === 'history' && (
           <section className="history-section card">
-            <NotificationHistory />
+            <NotificationHistory notifications={notifications} setNotifications={setNotifications} />
           </section>
         )}
       </main>

@@ -17,7 +17,7 @@ const app = express();
 const httpServer = createServer(app);
 
 // Configurar o WebSocket
-const io = new Server(httpServer, {
+export const io = new Server(httpServer, { // Exporte o `io` aqui
   cors: {
     origin: FRONTEND_URL,
     methods: ['GET', 'POST'],
@@ -49,13 +49,6 @@ app.use('/api', notificationRoutes);
 httpServer.listen(process.env.PORT || 3001, () => {
   console.log(`Server running on port ${process.env.PORT || 3001}`);
   
-  // Aqui fazemos o log após o servidor estar escutando
-  console.log('\n📡 Rotas registradas:');
-  notificationRoutes.stack.forEach((layer) => {
-    if (layer.route?.path) {
-      console.log(`→ /api${layer.route.path}`);
-    }
-  });
 });
 
 // Socket.io connection
@@ -66,7 +59,7 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id);
   });
 
-  // Aqui você pode adicionar eventos personalizados para seu WebSocket
+  socket.emit('notificationStatus', { status: 'connected' });
 });
 
 // Função para conectar ao banco de dados
