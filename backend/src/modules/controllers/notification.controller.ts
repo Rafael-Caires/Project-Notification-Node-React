@@ -39,96 +39,93 @@ export const getNotifications = async (req: Request, res: Response) => {
 };
 
 export const sendNotification = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { subject, message, channels } = req.body;
-  
-      // Log para verificar o que está sendo recebido na requisição
-      console.log('Received notification data:', { subject, message, channels });
-  
-      if (!subject || !message || !channels?.length) {
-        console.log('Validation failed: subject, message, or channels are missing');
-        res.status(400).json({
-          message: 'Subject, message, and channels are required',
-          details: {
-            received: {
-              subject: Boolean(subject),
-              message: Boolean(message),
-              channels: channels?.length || 0,
-            },
+  try {
+    const { subject, message, channels } = req.body;
+
+    console.log('Received notification data:', { subject, message, channels });
+
+    if (!subject || !message || !channels?.length) {
+      console.log('Validation failed: subject, message, or channels are missing');
+      res.status(400).json({
+        message: 'Subject, message, and channels are required',
+        details: {
+          received: {
+            subject: Boolean(subject),
+            message: Boolean(message),
+            channels: channels?.length || 0,
           },
-        });
-        return;
-      }
-  
-      // Criação da notificação no banco de dados
-      const newNotification = await Notification.create({
-        subject,
-        message,
-        channels,
-        status: 'pending',
+        },
       });
-  
-      console.log('Notification created:', newNotification);
-  
-      const activeChannels = (await ChannelService.getChannels())
-        .filter((c) => c.isActive && channels.includes(c.name))
-        .map((c) => c.name);
-  
-      console.log('Active channels:', activeChannels);
-  
-      // Envia a notificação para cada canal ativo
-      const results = await Promise.all(
-        activeChannels.map(async (channel) => {
-          try {
-            const sender = NotificationFactory.createSender(channel);
-            console.log(`Sending notification to ${channel}...`);
-            await sender.send(message);  // Envia a mensagem
-  
-            // Emite o status de "enviado" para o frontend via WebSocket
-            console.log(`Emitting notification status to WebSocket: sent for ${channel}`);
-            io.emit('notificationStatus', {
-              subject,
-              status: 'sent',
-              channel,
-            });
-  
-            return { channel, status: 'sent' };
-          } catch (error) {
-            const errorMessage = error || 'Unknown error';
-            console.error(`Error sending notification to ${channel}:`, errorMessage);
-  
-            // Emite o status de falha para o frontend via WebSocket
-            console.log(`Emitting notification status to WebSocket: failed for ${channel}`);
-            io.emit('notificationStatus', {
-              subject,
-              status: 'failed',
-              channel,
-              error: errorMessage,
-            });
-  
-            return { channel, status: 'failed', error: errorMessage };
-          }
-        })
-      );
-  
-      const allSent = results.every((r) => r.status === 'sent');
-      newNotification.status = allSent ? 'sent' : 'failed';
-      await newNotification.save();
-  
-      console.log('Notification status updated:', newNotification.status);
-  
-      // Retorna a resposta ao frontend
-      res.status(201).json({
-        notification: newNotification,
-        results,
-        success: allSent,
-      });
-    } catch (error) {
-      const errorMessage = error || 'Failed to send notification';
-      console.error('Error in sendNotification:', errorMessage);
-      res.status(500).json({ message: 'Failed to send notification', error: errorMessage });
+      return;
     }
-  };
+
+    // Criação da notificação no banco de dados
+    const newNotification = await Notification.create({
+      subject,
+      message,
+      channels,
+      status: 'pending',
+    });
+
+    console.log('Notification created:', newNotification);
+
+    // EMISSÃO DO EVENTO PARA ATUALIZAR O HISTÓRICO
+    io.emit('newNotification', newNotification); // Adicionado esta linha
+
+    const activeChannels = (await ChannelService.getChannels())
+      .filter((c) => c.isActive && channels.includes(c.name))
+      .map((c) => c.name);
+
+    console.log('Active channels:', activeChannels);
+
+    // Restante do código permanece igual...
+    const results = await Promise.all(
+      activeChannels.map(async (channel) => {
+        try {
+          const sender = NotificationFactory.createSender(channel);
+          console.log(`Sending notification to ${channel}...`);
+          await sender.send(message);
+
+          io.emit('notificationStatus', {
+            subject,
+            status: 'sent',
+            channel,
+          });
+
+          return { channel, status: 'sent' };
+        } catch (error) {
+          const errorMessage = error || 'Unknown error';
+          console.error(`Error sending notification to ${channel}:`, errorMessage);
+
+          io.emit('notificationStatus', {
+            subject,
+            status: 'failed',
+            channel,
+            error: errorMessage,
+          });
+
+          return { channel, status: 'failed', error: errorMessage };
+        }
+      })
+    );
+
+    const allSent = results.every((r) => r.status === 'sent');
+    newNotification.status = allSent ? 'sent' : 'failed';
+    await newNotification.save();
+
+    console.log('Notification status updated:', newNotification.status);
+
+    res.status(201).json({
+      notification: newNotification,
+      results,
+      success: allSent,
+    });
+  } catch (error) {
+    const errorMessage = error || 'Failed to send notification';
+    console.error('Error in sendNotification:', errorMessage);
+    res.status(500).json({ message: 'Failed to send notification', error: errorMessage });
+  }
+};
   
 export const getChannels = async (req: Request, res: Response) => {
   console.log('GET /channels requested');

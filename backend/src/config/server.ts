@@ -3,55 +3,39 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from './database'; // A partir do seu código anterior
-import notificationRoutes from '../modules/routes/notification.routes';  // Importar as rotas
+import { connectDB } from './database';
+import notificationRoutes from '..//modules/routes/notification.routes'; 
 
-// Carregar as variáveis de ambiente
 dotenv.config();
 
-// Configuração do FRONTEND_URL
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-
-// Criar a aplicação e configurar o servidor HTTP
 const app = express();
 const httpServer = createServer(app);
 
-// Configurar o WebSocket
-export const io = new Server(httpServer, { // Exporte o `io` aqui
+// Configuração do WebSocket com mais eventos
+export const io = new Server(httpServer, {
   cors: {
     origin: FRONTEND_URL,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   },
-  path: '/socket.io', // Certificando-se de que o caminho está configurado
+  path: '/socket.io',
 });
 
 // Middlewares
 app.use(cors({
   origin: FRONTEND_URL,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Adicionando os métodos necessários
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Usando o body-parser para fazer o parsing dos dados JSON
 app.use(express.json());
 
-// Health Check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
-});
-
-// Registrar as rotas após o servidor ser iniciado
+// Rotas
 app.use('/api', notificationRoutes);
 
-// Verificando as rotas registradas
-httpServer.listen(process.env.PORT || 3001, () => {
-  console.log(`Server running on port ${process.env.PORT || 3001}`);
-  
-});
-
-// Socket.io connection
+// Conexão WebSocket aprimorada
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
@@ -59,21 +43,26 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id);
   });
 
+  // Adicionado evento para solicitar atualização do histórico
+  socket.on('requestHistoryUpdate', () => {
+    console.log('History update requested by client:', socket.id);
+    socket.emit('updateHistory');
+  });
+
   socket.emit('notificationStatus', { status: 'connected' });
 });
 
-// Função para conectar ao banco de dados
+// Iniciar servidor
 const startServer = async () => {
   try {
-    // Conectar ao banco de dados
     await connectDB();
-
-    // Não é necessário chamar httpServer.listen() aqui, pois já estamos chamando no callback acima
+    httpServer.listen(process.env.PORT || 3001, () => {
+      console.log(`Server running on port ${process.env.PORT || 3001}`);
+    });
   } catch (error) {
     console.error('Error starting server:', error);
+    process.exit(1);
   }
 };
 
 startServer();
-
-

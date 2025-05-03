@@ -1,62 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import io, { Socket } from 'socket.io-client';  // Importando o Socket
+import { useNotificationContext } from '../context/NotificationContext';
+import { useSocket } from '../hooks/useSocket'; // Importe o hook
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface Notification {
-  subject: string;
-  message: string;
-  channels: string[];
-  createdAt: string;
-  status?: string;
-}
-
-interface NotificationHistoryProps {
-  notifications: Notification[];
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-}
-
-export const NotificationHistory = ({ notifications, setNotifications }: NotificationHistoryProps) => {
+export const NotificationHistory = () => {
+  const { notifications, setNotifications } = useNotificationContext();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const socket: Socket = io(import.meta.env.VITE_WS_URL); 
+  const { socket } = useSocket(); // Agora o hook está disponível
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/api/notifications/history`)
-      .then((response) => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/notifications/history`);
         const last20Notifications = response.data.slice(0, 20);
         setNotifications(last20Notifications);
-        console.log("Últimas 20 notificações:", last20Notifications);  
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError('Falha ao carregar as notificações');
         console.error('Erro ao carregar as notificações:', err);
         setLoading(false);
-      });
-
-    socket.on('notificationStatus', (statusData: { subject: string; status: string; channel: string }) => {
-      setNotifications((prevNotifications) => {
-        const updatedNotifications = prevNotifications.map((notification) => {
-          if (notification.subject === statusData.subject) {
-            return { ...notification, status: statusData.status };
-          }
-          return notification;
-        });
-        return updatedNotifications;  
-      });
-    });
-
-    return () => {
-      socket.off('notificationStatus');  
+      }
     };
-  }, [setNotifications]);
+
+    fetchNotifications();
+
+    // Listener para novas notificações via socket
+    if (socket) {
+      socket.on('newNotification', fetchNotifications);
+      
+      return () => {
+        socket.off('newNotification', fetchNotifications);
+      };
+    }
+  }, [setNotifications, socket]);
 
   const formatDate = (date: string) => {
     const newDate = new Date(date);
-    return newDate.toLocaleString(); 
+    return newDate.toLocaleString();
   };
 
   if (loading) return <div>Carregando notificações...</div>;
