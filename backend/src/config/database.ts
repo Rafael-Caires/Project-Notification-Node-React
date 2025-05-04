@@ -1,5 +1,7 @@
 // backend/src/config/database.ts
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // 1. Interface para tipagem global
 declare global {
@@ -13,15 +15,19 @@ declare global {
   }
 }
 
-// Configuração da conexão
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/notificationDB';
+// 2. Validação da variável de ambiente
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// 2. Configurações do Mongoose
-mongoose.set('strictQuery', true); // Para suprimir aviso de depreciação
-mongoose.set('bufferCommands', false); // Desativa buffering de comandos
-mongoose.set('autoIndex', process.env.NODE_ENV !== 'production'); // Indexação automática apenas em dev
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
 
-// 3. Cache de conexão para hot-reload
+// 3. Configurações do Mongoose
+mongoose.set('strictQuery', true);
+mongoose.set('bufferCommands', false);
+mongoose.set('autoIndex', process.env.NODE_ENV !== 'production');
+
+// 4. Cache de conexão
 const globalWithMongoose = global as typeof global & {
   mongoose: {
     conn: typeof mongoose | null;
@@ -35,56 +41,43 @@ if (!cached) {
   cached = globalWithMongoose.mongoose = { conn: null, promise: null };
 }
 
-// 4. Função principal de conexão
-export const connectDB = async () => {
+// 5. Função de conexão com tratamento de tipos
+export const connectDB = async (): Promise<typeof mongoose> => {
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    const opts = {
+    const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 10000, // 10 segundos
-      socketTimeoutMS: 45000, // 45 segundos
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     };
 
-    console.log(`Connecting to MongoDB at ${MONGODB_URI}`);
+    console.log(`Conectando ao MongoDB na URL: ${MONGODB_URI}`);
+    console.log(`Verifique o .env em caso de falha`);
     
     cached.promise = mongoose.connect(MONGODB_URI, opts)
       .then(mongoose => {
-        console.log('✅ MongoDB connected successfully');
+        console.log('MongoDB Conexão Realizada com Sucesso');
         return mongoose;
       })
       .catch(err => {
-        console.error('❌ MongoDB connection error:', err);
+        console.error('MongoDB Falha ao conectar:', err);
+        cached.promise = null;
         throw err;
       });
   }
 
   try {
     cached.conn = await cached.promise;
+        
+    await import('../seed/channels.seed').then(({ seedChannels }) => seedChannels());
+    await import('../seed/notifications.seed').then(({ seedNotifications }) => seedNotifications());
+    
+    return cached.conn;
   } catch (err) {
     cached.promise = null;
     throw err;
   }
-
-  return cached.conn;
 };
-
-// 5. Função para testes (opcional)
-// export const setupTestDB = async () => {
-//   if (process.env.NODE_ENV === 'test') {
-//     const { MongoMemoryServer } = await import('mongodb-memory-server');
-//     const mongoServer = await MongoMemoryServer.create();
-//     const uri = mongoServer.getUri();
-    
-//     await mongoose.connect(uri);
-    
-//     return {
-//       close: async () => {
-//         await mongoose.disconnect();
-//         await mongoServer.stop();
-//       }
-//     };
-//   }
-// };

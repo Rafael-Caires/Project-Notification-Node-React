@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Document, Schema, model } from 'mongoose';
 
-interface IChannel extends Document {
+export interface IChannel extends Document {
     name: string;
     isActive: boolean;
     createdAt: Date;
@@ -12,15 +12,16 @@ const channelSchema = new Schema<IChannel>({
         type: String, 
         required: true, 
         unique: true,
-        enum: ['email', 'sms', 'push']  // Valores permitidos
+        enum: ['email', 'sms', 'push']
     },
     isActive: { 
         type: Boolean, 
         default: true 
     }
 }, { 
-    timestamps: true  // Adiciona createdAt e updatedAt automaticamente
+    timestamps: true,
+    autoIndex: true
 });
 
-// Cria o modelo ou usa um existente para evitar OverwriteModelError
-export default mongoose.models.Channel || mongoose.model<IChannel>('Channel', channelSchema);
+
+export default model<IChannel>('Channel', channelSchema);

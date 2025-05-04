@@ -12,3 +12,8 @@ export interface Notification {
     notifications: Notification[];
     setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   }
+
+  export interface Channel {
+    name: string;
+    isActive: boolean;
+  }

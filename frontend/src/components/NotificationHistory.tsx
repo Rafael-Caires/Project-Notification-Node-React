@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNotificationContext } from '../context/NotificationContext';
-import { useSocket } from '../hooks/useSocket'; // Importe o hook
+import { useSocket } from '../hooks/useSocket'; 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const NotificationHistory = () => {
   const { notifications, setNotifications } = useNotificationContext();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { socket } = useSocket(); // Agora o hook está disponível
+  const { socket } = useSocket(); 
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -26,7 +26,6 @@ export const NotificationHistory = () => {
 
     fetchNotifications();
 
-    // Listener para novas notificações via socket
     if (socket) {
       socket.on('newNotification', fetchNotifications);
       

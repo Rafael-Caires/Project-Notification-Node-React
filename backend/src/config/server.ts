@@ -5,14 +5,14 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './database';
 import notificationRoutes from '..//modules/routes/notification.routes'; 
+import { ChannelService } from '../modules/channels/channel.service';
 
 dotenv.config();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL;
 const app = express();
 const httpServer = createServer(app);
 
-// Configuração do WebSocket com mais eventos
 export const io = new Server(httpServer, {
   cors: {
     origin: FRONTEND_URL,
@@ -22,7 +22,6 @@ export const io = new Server(httpServer, {
   path: '/socket.io',
 });
 
-// Middlewares
 app.use(cors({
   origin: FRONTEND_URL,
   credentials: true,
@@ -32,35 +31,25 @@ app.use(cors({
 
 app.use(express.json());
 
-// Rotas
 app.use('/api', notificationRoutes);
 
-// Conexão WebSocket aprimorada
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-
-  // Adicionado evento para solicitar atualização do histórico
   socket.on('requestHistoryUpdate', () => {
-    console.log('History update requested by client:', socket.id);
     socket.emit('updateHistory');
   });
 
   socket.emit('notificationStatus', { status: 'connected' });
 });
 
-// Iniciar servidor
 const startServer = async () => {
   try {
     await connectDB();
+    await ChannelService.initializeDefaultChannels();
     httpServer.listen(process.env.PORT || 3001, () => {
-      console.log(`Server running on port ${process.env.PORT || 3001}`);
+      console.log(`Server rodando na porta ${process.env.PORT || 3001}`);
     });
   } catch (error) {
-    console.error('Error starting server:', error);
+    console.error('Erro ao Iniciar o server:', error);
     process.exit(1);
   }
 };

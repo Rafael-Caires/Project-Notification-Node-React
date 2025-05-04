@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Notification from '../models/notification.model';
 import { ChannelService } from '../channels/channel.service';
 import { NotificationFactory } from '../factories/notification.factory';
+import { IChannel } from '../models/channel.model';
 import { io } from '../../config/server';
 
 interface ErrorWithMessage {
@@ -42,24 +43,35 @@ export const sendNotification = async (req: Request, res: Response): Promise<voi
   try {
     const { subject, message, channels } = req.body;
 
-    console.log('Received notification data:', { subject, message, channels });
-
-    if (!subject || !message || !channels?.length) {
-      console.log('Validation failed: subject, message, or channels are missing');
+    if (!subject?.trim() || !message?.trim() || !Array.isArray(channels) || channels.length === 0) {
+      console.warn('Falha na validação - campos obrigatórios ausentes', { subject, message, channels });
       res.status(400).json({
-        message: 'Subject, message, and channels are required',
+        error: 'ENTRADA_INVÁLIDA',
+        message: 'Assunto, mensagem e pelo menos um canal são obrigatórios',
         details: {
-          received: {
-            subject: Boolean(subject),
-            message: Boolean(message),
-            channels: channels?.length || 0,
-          },
-        },
+          subject_valid: Boolean(subject?.trim()),
+          message_valid: Boolean(message?.trim()),
+          channels_valid: Array.isArray(channels) && channels.length > 0
+        }
       });
       return;
     }
 
-    // Criação da notificação no banco de dados
+    const availableChannels = await ChannelService.getActiveChannels();
+    const activeChannelNames = availableChannels.map((c: IChannel) => c.name);
+
+    const invalidChannels = channels.filter((ch: string) => !activeChannelNames.includes(ch));
+    if (invalidChannels.length > 0) {
+      console.warn('Tentativa de usar canais inválidos/inativos', { invalidChannels, activeChannelNames });
+      res.status(400).json({
+        error: 'CANAIS_INVÁLIDOS',
+        message: 'Um ou mais canais são inválidos ou inativos',
+        invalidChannels,
+        availableChannels: activeChannelNames
+      });
+      return;
+    }
+
     const newNotification = await Notification.create({
       subject,
       message,
@@ -67,23 +79,17 @@ export const sendNotification = async (req: Request, res: Response): Promise<voi
       status: 'pending',
     });
 
-    console.log('Notification created:', newNotification);
-
-    // EMISSÃO DO EVENTO PARA ATUALIZAR O HISTÓRICO
-    io.emit('newNotification', newNotification); // Adicionado esta linha
+    io.emit('newNotification', newNotification);
 
     const activeChannels = (await ChannelService.getChannels())
       .filter((c) => c.isActive && channels.includes(c.name))
       .map((c) => c.name);
 
-    console.log('Active channels:', activeChannels);
 
-    // Restante do código permanece igual...
     const results = await Promise.all(
       activeChannels.map(async (channel) => {
         try {
           const sender = NotificationFactory.createSender(channel);
-          console.log(`Sending notification to ${channel}...`);
           await sender.send(message);
 
           io.emit('notificationStatus', {
@@ -94,8 +100,8 @@ export const sendNotification = async (req: Request, res: Response): Promise<voi
 
           return { channel, status: 'sent' };
         } catch (error) {
-          const errorMessage = error || 'Unknown error';
-          console.error(`Error sending notification to ${channel}:`, errorMessage);
+          const errorMessage = error || 'Erro desconhecido';
+          console.error(`Erro ao enviar notificação para ${channel}:`, errorMessage);
 
           io.emit('notificationStatus', {
             subject,
@@ -113,7 +119,6 @@ export const sendNotification = async (req: Request, res: Response): Promise<voi
     newNotification.status = allSent ? 'sent' : 'failed';
     await newNotification.save();
 
-    console.log('Notification status updated:', newNotification.status);
 
     res.status(201).json({
       notification: newNotification,
@@ -121,18 +126,15 @@ export const sendNotification = async (req: Request, res: Response): Promise<voi
       success: allSent,
     });
   } catch (error) {
-    const errorMessage = error || 'Failed to send notification';
-    console.error('Error in sendNotification:', errorMessage);
-    res.status(500).json({ message: 'Failed to send notification', error: errorMessage });
+    const errorMessage = error || 'Falha ao enviar a notificação';
+    console.error('Erro em sendNotification:', errorMessage);
+    res.status(500).json({ message: 'Falha ao enviar a notificação', error: errorMessage });
   }
 };
-  
+
 export const getChannels = async (req: Request, res: Response) => {
-  console.log('GET /channels requested');
   try {
-      console.log('Fetching channels from service...');
       const channels = await ChannelService.getChannels();
-      console.log('Channels found:', channels);
       res.json(channels);
   } catch (error) {
       console.error('Error in GET /channels:', error);

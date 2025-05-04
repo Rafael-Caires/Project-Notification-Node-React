@@ -59,7 +59,7 @@ export const NotificationForm = () => {
     setSuccess(null);
 
     try {
-      await axios.post('http://localhost:3001/api/notifications', {
+      await axios.post(`${API_URL}/api/notifications`, {
         subject,  
         message,
         channels: selectedChannels,
@@ -69,13 +69,19 @@ export const NotificationForm = () => {
       setSubject('');  
       setMessage('');  
       setSelectedChannels([]);  
-    } catch (err) {
-      setError('Erro ao enviar a notificação');
-      console.error(err);
+    } catch (err: any) {
+      // Verificar a estrutura do erro retornado e exibir a mensagem adequada
+      if (err.response && err.response.data) {
+        setError(err.response.data.message || 'Erro ao enviar a notificação');
+        console.error(err.response.data);
+      } else {
+        setError('Erro ao enviar a notificação');
+      }
     } finally {
       setIsSending(false);
     }
   };
+
 
   return (
     <section className="send-section card">
