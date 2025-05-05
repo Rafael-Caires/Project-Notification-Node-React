@@ -7,7 +7,6 @@ const initialChannels = [
   { name: 'push', isActive: true }
 ];
 
-// Exportação nomeada explícita
 export async function seedChannels() {
   try {
     
@@ -25,5 +24,4 @@ export async function seedChannels() {
   }
 }
 
-// Exportação padrão adicional (opcional)
 export default { seedChannels };

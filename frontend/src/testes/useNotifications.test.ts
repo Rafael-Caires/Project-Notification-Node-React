@@ -13,7 +13,7 @@ describe('useNotifications', () => {
 
     const { result, waitForNextUpdate } = renderHook(() => useNotifications());
 
-    await waitForNextUpdate(); // Aguarda o hook processar o fetch
+    await waitForNextUpdate(); 
     expect(result.current.notifications).toEqual(mockData);
   });
 

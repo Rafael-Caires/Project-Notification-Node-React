@@ -22,7 +22,6 @@ export const validateRequest = (req: Request, res: Response, next: NextFunction)
   next();
 };
 
-// Versão alternativa que lança erros para o errorHandler
 export const validateRequestStrict = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   

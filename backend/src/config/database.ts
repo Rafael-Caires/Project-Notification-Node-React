@@ -1,9 +1,10 @@
 // backend/src/config/database.ts
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import '@seed/channels.seed'; 
+import '@seed/notifications.seed'; 
 dotenv.config();
 
-// 1. Interface para tipagem global
 declare global {
   namespace NodeJS {
     interface Global {
@@ -15,19 +16,16 @@ declare global {
   }
 }
 
-// 2. Validação da variável de ambiente
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-// 3. Configurações do Mongoose
 mongoose.set('strictQuery', true);
 mongoose.set('bufferCommands', false);
 mongoose.set('autoIndex', process.env.NODE_ENV !== 'production');
 
-// 4. Cache de conexão
 const globalWithMongoose = global as typeof global & {
   mongoose: {
     conn: typeof mongoose | null;
@@ -41,7 +39,6 @@ if (!cached) {
   cached = globalWithMongoose.mongoose = { conn: null, promise: null };
 }
 
-// 5. Função de conexão com tratamento de tipos
 export const connectDB = async (): Promise<typeof mongoose> => {
   if (cached.conn) {
     return cached.conn;

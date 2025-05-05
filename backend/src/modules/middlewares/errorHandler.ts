@@ -30,7 +30,6 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  // Log do erro completo para desenvolvimento
   console.error(`[${new Date().toISOString()}] Error:`, {
     message: err.message,
     stack: err.stack,
@@ -39,13 +38,11 @@ export const errorHandler = (
     body: req.body
   });
 
-  // Definir valores padrão
   let statusCode = err.statusCode || 500;
   let errorType = ErrorType.UNKNOWN_ERROR;
   let errors: unknown[] | undefined;
   let metadata: Record<string, unknown> | undefined;
 
-  // Tratamento específico para tipos de erro
   if (err instanceof JsonWebTokenError) {
     statusCode = 401;
     errorType = ErrorType.AUTH_ERROR;
@@ -56,7 +53,6 @@ export const errorHandler = (
       : ErrorType.VALIDATION_ERROR;
   }
 
-  // Construir resposta
   const response: ErrorResponse = {
     success: false,
     type: errorType,
@@ -65,7 +61,6 @@ export const errorHandler = (
     metadata
   };
 
-  // Incluir stack trace apenas em desenvolvimento
   if (process.env.NODE_ENV === 'development') {
     response.stack = err.stack;
   }
@@ -73,7 +68,6 @@ export const errorHandler = (
   res.status(statusCode).json(response);
 };
 
-// Classe para erros customizados (opcional)
 export class AppError extends Error {
   constructor(
     public message: string,

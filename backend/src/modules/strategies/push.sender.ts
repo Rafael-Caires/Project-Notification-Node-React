@@ -3,7 +3,6 @@ import { INotificationSender } from '../interfaces/INotificationSender';
 
 export class PushSender implements INotificationSender {
     async send(message: string) {
-        // Implementação real usaria Firebase Cloud Messaging ou similar
         console.log(`Enviando push: ${message}`);
         
         return {

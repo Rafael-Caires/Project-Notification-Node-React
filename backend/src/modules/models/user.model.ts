@@ -15,7 +15,6 @@ const userSchema = new Schema<IUser>({
   tokens: [{ token: { type: String, required: true } }]
 });
 
-// Método para gerar token
 userSchema.methods.generateAuthToken = async function() {
   const token = jwt.sign({ userId: this._id }, process.env.JWT_SECRET!, { 
     expiresIn: '7d' 

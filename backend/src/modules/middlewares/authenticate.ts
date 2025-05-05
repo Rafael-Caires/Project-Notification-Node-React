@@ -9,7 +9,6 @@ interface JwtPayload {
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 1. Obter o token do header
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
@@ -19,21 +18,17 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       });
     }
 
-    // 2. Verificar o token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     
-    // 3. Buscar usuário no banco
     const user = await User.findOne({ 
       _id: decoded.userId,
-      'tokens.token': token // Verifica se o token ainda está ativo
+      'tokens.token': token 
     });
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    // 4. Adicionar usuário e token ao request
-    // req.user= user;
     req.token = token;
 
     next();
@@ -46,7 +41,6 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// Extendendo a interface do Request do Express
 declare global {
   namespace Express {
     interface Request {

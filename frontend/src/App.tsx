@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { io} from 'socket.io-client';
 import axios from 'axios';
+import React from 'react'
 import { Channel} from '../src/core/types';
 import './App.css';
 import { NotificationForm } from '../src/components/NotificationForm';

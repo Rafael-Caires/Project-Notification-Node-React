@@ -1,11 +1,12 @@
+import 'module-alias/register';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from './database';
-import notificationRoutes from '..//modules/routes/notification.routes'; 
-import { ChannelService } from '../modules/channels/channel.service';
+import { connectDB } from '@config/database'; 
+import notificationRoutes from '@modules/routes/notification.routes'; 
+import { ChannelService } from '@modules/channels/channel.service'; 
 
 dotenv.config();
 

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import App from '../App';  // Certifique-se de importar corretamente
+import App from '../App';  
 import { NotificationProvider } from '../context/NotificationContext';
 
 describe('App Component', () => {
@@ -10,7 +10,6 @@ describe('App Component', () => {
       </NotificationProvider>
     );
 
-    // Verificar se os tabs estão visíveis
     expect(screen.getByText('Canais')).toBeInTheDocument();
     expect(screen.getByText('Enviar Notificação')).toBeInTheDocument();
     expect(screen.getByText('Histórico')).toBeInTheDocument();
